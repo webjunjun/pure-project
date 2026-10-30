@@ -30,7 +30,7 @@ jobs:
           # Pages 项目站部署在 /<仓库名>/ 子路径下，
           # 把 demo 源码里 "/assets/、"/common/ 这类绝对路径改写为带仓库前缀的路径
           find dist/threeDemo -type f \( -name '*.html' -o -name '*.js' \) -print0 \
-            | xargs -0 sed -i -E "s|([\"'])/(assets|common)/|\1$BASE/\2/|g"
+            | xargs -0 sed -i -E "s@([\"'])/(assets|common)/@\1$BASE/\2/@g"
 
           # 站点入口页
           cat > dist/index.html <<'EOF'
