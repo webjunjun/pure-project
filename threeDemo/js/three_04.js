@@ -1,4 +1,4 @@
-import { KenneyCity } from './kenney_city/KenneyCity.js'
+import { KenneyCity } from './kenney_city/KenneyCity.js?v=4'
 
 const main = async () => {
   const container = document.querySelector('#scene-container')

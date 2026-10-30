@@ -25,7 +25,7 @@ jobs:
           BASE: /${{ github.event.repository.name }}
         run: |
           mkdir -p dist
-          cp -r assets common threeDemo dist/
+          cp -r assets common threeDemo signDemo dist/
 
           # Pages 项目站部署在 /<仓库名>/ 子路径下，
           # 把 demo 源码里 "/assets/、"/common/ 这类绝对路径改写为带仓库前缀的路径
@@ -55,6 +55,7 @@ jobs:
               <li><a href="threeDemo/vr_view_house.html">VR 看房</a></li>
               <li><a href="threeDemo/kenney_city.html">Kenney 城市</a></li>
               <li><a href="threeDemo/fake_jump.html">伪跳跃（物理）</a></li>
+              <li><a href="signDemo/signature.html">手写签名</a></li>
             </ul>
           </body>
           </html>

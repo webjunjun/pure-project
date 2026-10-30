@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>手写签名</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #ffffff;
+      --primary: #38bdf8;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: radial-gradient(1200px 600px at 50% -10%, #1e293b, var(--bg));
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 560px;
+      background: var(--card);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .subtitle {
+      margin: 0 0 18px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .pad {
+      position: relative;
+      height: 260px;
+      border: 1.5px dashed var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .pad.has-draw { border-style: solid; }
+    .hint {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #cbd5e1;
+      font-size: 15px;
+      pointer-events: none;
+      user-select: none;
+    }
+    .hint::after {
+      content: "";
+      position: absolute;
+      left: 40px;
+      right: 40px;
+      bottom: 60px;
+      border-bottom: 1.5px solid var(--border);
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .swatch {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      padding: 0;
+    }
+    .swatch.active { border-color: var(--primary); box-shadow: 0 0 0 2px #fff inset; }
+    input[type="range"] { accent-color: var(--primary); }
+    .spacer { flex: 1; }
+    button.action {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #f1f5f9;
+      color: var(--text);
+      transition: transform .05s ease, background .15s ease;
+    }
+    button.action:hover { background: #e2e8f0; }
+    button.action:active { transform: translateY(1px); }
+    button.primary { background: var(--primary); color: #fff; }
+    button.primary:hover { background: #0ea5e9; }
+    .preview {
+      margin-top: 18px;
+      display: none;
+    }
+    .preview.show { display: block; }
+    .preview-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .preview-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background:
+        linear-gradient(45deg, #f8fafc 25%, transparent 25%) -10px 0/20px 20px,
+        linear-gradient(-45deg, #f8fafc 25%, transparent 25%) -10px 0/20px 20px,
+        linear-gradient(45deg, transparent 75%, #f8fafc 75%) 0 0/20px 20px,
+        linear-gradient(-45deg, transparent 75%, #f8fafc 75%) 0 0/20px 20px,
+        #fff;
+    }
+    .preview-box img { display: block; max-width: 100%; }
+    .preview-actions { margin-top: 10px; display: flex; gap: 8px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>手写签名</h1>
+    <p class="subtitle">使用鼠标、手指或手写笔在下方区域签名</p>
+
+    <div class="pad" id="pad">
+      <div class="hint" id="hint">请在此区域签名</div>
+    </div>
+
+    <div class="toolbar">
+      <div class="group">
+        颜色
+        <button class="swatch active" data-color="#1f2937" style="background:#1f2937"></button>
+        <button class="swatch" data-color="#2563eb" style="background:#2563eb"></button>
+        <button class="swatch" data-color="#dc2626" style="background:#dc2626"></button>
+      </div>
+      <div class="group">
+        粗细
+        <input type="range" id="size" min="1" max="10" value="3">
+        <span id="sizeVal">3</span>
+      </div>
+      <div class="group">
+        背景
+        <label><input type="checkbox" id="transparent"> 透明</label>
+      </div>
+
+      <div class="spacer"></div>
+
+      <button class="action" id="undo">撤销</button>
+      <button class="action" id="clear">清除</button>
+      <button class="action primary" id="save">保存</button>
+    </div>
+
+    <div class="preview" id="preview">
+      <div class="preview-label">生成结果（右键可另存为）</div>
+      <div class="preview-box">
+        <img id="previewImg" alt="签名预览">
+      </div>
+      <div class="preview-actions">
+        <button class="action primary" id="download">下载 PNG</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/signature.js"></script>
+  <script>
+    const pad = document.getElementById("pad");
+    const hint = document.getElementById("hint");
+
+    const option = {
+      lineColor: "#1f2937",
+      lineSize: 3,
+      backgroundColor: "#ffffff",
+    };
+    const signer = createSignaturePad(pad, option);
+
+    function refreshEmpty() {
+      const empty = signer.isEmpty();
+      hint.style.display = empty ? "flex" : "none";
+      pad.classList.toggle("has-draw", !empty);
+    }
+    pad.addEventListener("sign-change", refreshEmpty);
+
+    // 颜色切换
+    document.querySelectorAll(".swatch").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".swatch").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        option.lineColor = btn.dataset.color;
+      });
+    });
+
+    // 粗细
+    const sizeInput = document.getElementById("size");
+    const sizeVal = document.getElementById("sizeVal");
+    sizeInput.addEventListener("input", () => {
+      option.lineSize = Number(sizeInput.value);
+      sizeVal.textContent = sizeInput.value;
+    });
+
+    // 透明背景：切换后按新背景重绘已有笔画
+    document.getElementById("transparent").addEventListener("change", (e) => {
+      option.backgroundColor = e.target.checked ? false : "#ffffff";
+      signer.redraw();
+    });
+
+    document.getElementById("undo").addEventListener("click", () => {
+      signer.undo();
+      refreshEmpty();
+    });
+
+    document.getElementById("clear").addEventListener("click", () => {
+      signer.reset();
+      refreshEmpty();
+      document.getElementById("preview").classList.remove("show");
+    });
+
+    document.getElementById("save").addEventListener("click", () => {
+      const base64 = signer.getBase64();
+      if (!base64) return;
+      document.getElementById("previewImg").src = base64;
+      document.getElementById("preview").classList.add("show");
+    });
+
+    document.getElementById("download").addEventListener("click", () => {
+      const base64 = signer.getBase64();
+      if (!base64) return;
+      const a = document.createElement("a");
+      a.href = base64;
+      a.download = "signature.png";
+      a.click();
+    });
+  </script>
+</body>
+</html>
