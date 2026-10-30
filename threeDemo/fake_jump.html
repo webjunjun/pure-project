@@ -5,20 +5,122 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>仿跳一跳小游戏</title>
     <link rel="stylesheet" href="./styles/base.css">
+    <style>
+      /* 该应用自身需要的样式 */
+      #scene-container {
+        background-color: #282828;
+      }
+      #scene-container canvas {
+        /* 阻止浏览器手势(滚动/双击缩放)干扰按住蓄力 */
+        touch-action: none;
+      }
+      .mask {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+      }
+      .content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 500px;
+        height: 500px;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.4);
+        border: 5px solid rgba(255, 255, 255, 0.05);
+      }
+      .score-container {
+        color: #ffffff;
+        text-align: center;
+      }
+      .title {
+        font-size: 20px;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .score {
+        font-size: 100px;
+        font-weight: bold;
+        margin-top: 20px;
+        /* 覆盖 base.css 中 h1 的全宽绝对定位 */
+        position: static;
+        width: auto;
+      }
+      button.restart {
+        width: 200px;
+        height: 40px;
+        border-radius: 20px;
+        background: white;
+        border: none;
+        font-weight: bold;
+        font-size: 20px;
+        cursor: pointer;
+      }
+      button.restart:hover {
+        color: #232323;
+      }
+      .info {
+        margin: 20px 0;
+        position: absolute;
+        text-align: center;
+        opacity: 0.2;
+        width: 100%;
+      }
+      .gaming-score {
+        margin-top: 50px;
+        color: #FFF;
+        font-size: 26px;
+      }
+      .toast {
+        position: fixed;
+        top: 18%;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #ffd76e;
+        font-size: 34px;
+        font-weight: bold;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        z-index: 2;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+    </style>
 </head>
 <body>
 <div id="scene-container"></div>
+<div class="mask">
+  <div class="content">
+    <div class="score-container">
+      <p class="title">本次得分</p>
+      <h1 class="score">0</h1>
+    </div>
+    <button class="restart">重新开始</button>
+  </div>
+</div>
+<div class="info">
+  <div class="gaming-score">
+    得分：<span class="current-score">0</span>
+  </div>
+</div>
+<div class="toast"></div>
 <script type="importmap">
 { 
   "imports": {
     "three": "/common/lib/three.module.js",
-    "three/addons/": "/common/lib/jsm/",
-    "@tweenjs/tween.js": "/common/lib/tween.esm.js",
-    "Ammo": "/common/lib/ammo.js"
+    "three/addons/": "/common/lib/jsm/"
   }
 }
 </script>
-<script src="/common/lib/lodash-4_17_21.js"></script>
 <script type="module" src="./js/three_07.js"></script>
 </body>
 </html>
