@@ -1,0 +1,80 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build static site
+        env:
+          BASE: /${{ github.event.repository.name }}
+        run: |
+          mkdir -p dist
+          cp -r assets common threeDemo dist/
+
+          # Pages 项目站部署在 /<仓库名>/ 子路径下，
+          # 把 demo 源码里 "/assets/、"/common/ 这类绝对路径改写为带仓库前缀的路径
+          find dist/threeDemo -type f \( -name '*.html' -o -name '*.js' \) -print0 \
+            | xargs -0 sed -i -E "s|([\"'])/(assets|common)/|\1$BASE/\2/|g"
+
+          # 站点入口页
+          cat > dist/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="zh-CN">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Three.js Demos</title>
+            <style>
+              body { font-family: system-ui, sans-serif; max-width: 640px; margin: 60px auto; padding: 0 20px; background: #0f172a; color: #e2e8f0; }
+              h1 { font-weight: 600; }
+              ul { list-style: none; padding: 0; }
+              li { margin: 12px 0; }
+              a { color: #38bdf8; text-decoration: none; font-size: 18px; }
+              a:hover { text-decoration: underline; }
+            </style>
+          </head>
+          <body>
+            <h1>Three.js Demos</h1>
+            <ul>
+              <li><a href="threeDemo/vr_view_house.html">VR 看房</a></li>
+              <li><a href="threeDemo/kenney_city.html">Kenney 城市</a></li>
+              <li><a href="threeDemo/fake_jump.html">伪跳跃（物理）</a></li>
+            </ul>
+          </body>
+          </html>
+          EOF
+
+          # 跳过 Jekyll 处理，原样发布静态文件
+          touch dist/.nojekyll
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
